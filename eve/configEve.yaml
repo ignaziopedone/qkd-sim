@@ -1,0 +1,7 @@
+attack:
+  interceptAndResend: 0
+  manInTheMiddle: 0
+
+destinations:
+  entangledSource: http://172.15.0.7:4000
+  sourcePort: 4000

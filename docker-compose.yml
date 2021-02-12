@@ -1,0 +1,94 @@
+version: '2.1'
+
+networks:
+  frontend:
+    ipam:
+      config:
+        - subnet: 172.15.0.0/24
+
+services:
+  vault:
+    image: vault
+    container_name: vaultSim
+    ports:
+      - "8200:8200"
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.3
+    restart: "on-failure"
+    volumes:
+      - ./volumes/logs:/vault/logs
+      - ./volumes/file:/vault/file
+      - ./volumes/config:/vault/config
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -config=/vault/config/vault.json
+
+  mysql:
+    image: mysql
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.2
+    container_name: DBSim
+    command: --init-file /data/application/db_init.sql
+    restart: "on-failure"
+    volumes:
+      - ./db_init.sql:/data/application/db_init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: dummypassword
+      MYSQL_DATABASE: simulatorDB
+
+  alice:
+    image: ignaziopedone/qkd:simulator-1.2
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.4
+    restart: "on-failure"
+    volumes:
+      - ./volumes/alice:/usr/src/app/config
+      - ./volumes/source:/usr/src/app/src
+
+  bob:
+    image: ignaziopedone/qkd:simulator-1.2
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.5
+    restart: "on-failure"
+    volumes:
+      - ./volumes/bob:/usr/src/app/config
+      - ./volumes/source:/usr/src/app/src
+
+  eve:
+    image: ignaziopedone/qkd:simulator-1.2
+    container_name: eveSimulator
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.6
+    restart: "on-failure"
+    volumes:
+      - ./eve:/usr/src/app/src
+
+  e91source:
+    image: ignaziopedone/qkd:simulator-1.2
+    container_name: singletSource
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.7
+    restart: "on-failure"
+    volumes:
+      - ./singletSource:/usr/src/app/src
+
+  manager:
+    image: ignaziopedone/qkd:simulator-1.2
+    container_name: simulatorManager
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    networks:
+      frontend:
+        ipv4_address: 172.15.0.8
+    restart: "on-failure"
+    depends_on:
+      - vault
+      - mysql
+    volumes:
+      - ./manager:/usr/src/app/src

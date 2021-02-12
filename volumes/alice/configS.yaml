@@ -1,0 +1,31 @@
+auth_key:
+  peerPublicKey: b'64ewf98wqrsdfft1^\xbf\x9a\x1e\xdc\xac+\x94\x06E\x12\xfa?\xa2\xddf'
+  privateKey: b'124986546848776451342111546854654643545484981234>\xff\xb3\xa9\x96F\x94\xbc\xadHz\xca\xcd\xc7+.'
+
+internal_db:
+  host: 172.15.0.2
+  user: root
+  passwd: dummypassword
+  database: simulatorDB
+
+simulator:
+  protocol: bb84
+  def_key_len: 128
+  chunk_size: 9
+  table: alice_sim_DB
+  chsh_threshold: -2.7
+  authentication: sphincs+
+#  authentication: aesgcm
+
+
+preshared_key:
+  table: aliceSim_pre_keys
+  presharedTTL: 20
+  preshared_path: alicePresharedSimKeys
+
+vault:
+  host: 172.15.0.3:8200
+  token: s.qSYNEKbCQVlGEO9QG4IOmwkd
+
+eve:
+  ip_addr: 172.15.0.6:4000

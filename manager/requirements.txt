@@ -1,0 +1,13 @@
+requests==2.23.0
+hvac==0.10.4
+mysql-connector-python==8.0.20
+qiskit
+validators
+flask
+flask_login
+flask_migrate
+flask_wtf
+flask_sqlalchemy==2.*
+email_validator
+python-decouple
+gunicorn

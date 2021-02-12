@@ -1,0 +1,108 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="row">
+
+      <div class="col-12">
+        <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="tim-icons icon-key-25 text-primary"></i> New key exchange</h3>
+        </div>
+          <div class="card-body">
+            <div class="form-group">
+            	<label for="destination">Destination</label>
+            	<input type="email" class="form-control" id="destcontrol" placeholder="left blank for default Bob address">
+            </div>
+            <div class="form-group">
+            	<label for="length">Key length</label>
+            	<input type="number" class="form-control" id="numcontrol" placeholder="128" min="1">
+            </div>
+            <div class="form-group">
+            	<label for="length">Protocol</label>
+            	<select class="form-control" id="protcontrol">
+            		<option>BB84</option>
+            		<option>E91</option>
+            	</select>
+            </div>
+            <button type="button" class="btn btn-danger" id="startExc">Start key exchange</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-default" role="alert">
+	<strong>Request result:</strong>
+	<br>
+	<span id="reqRes"></span>
+	<button type="button" class="close" aria-label="Close" id="clearBtn">
+		<i class="tim-icons icon-simple-remove"></i>
+	</button>
+    </div>    
+
+    <div class="row">
+      <div class="col-lg-6">
+        <div class="card card-chart" style="padding:15px">
+          <div class="card-header">
+            <h3 class="card-title"><i class="tim-icons icon-settings text-primary"></i> Simulator settings</h3>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+            	<label for="length">Statevector length</label>
+            	<input type="number" class="form-control" id="statevectorl" placeholder="8" min="1" max="14">
+            	<button type="button" class="btn btn-info" id="statevectBtn">Change</button>
+            </div>
+            <div class="form-group">
+            	<label for="length">Authentication method</label>
+            	<select class="form-control" id="auth">
+            		<option>SPHINCS+</option>
+            		<option>AES-GCM</option>
+            	</select>
+            	<button type="button" class="btn btn-info" id="authBtn">Change</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card card-chart" style="padding:15px">
+          <div class="card-header">
+            <h3 class="card-title"><i class="tim-icons icon-settings text-info"></i> Channel settings</h3>
+          </div>
+          <div class="card-body" style="padding:15px">
+            <label class="form-check-label" style="padding-left:20px; padding-top:30px;">
+ 	           <input class="form-check-input" type="checkbox" value="" id="IRcheck"> Intercept and resend (quantum channel)
+            </label>
+            <br>
+            <label class="form-check-label" style="padding-left:20px; padding-top:30px; padding-bottom:30px;">
+ 	           <input class="form-check-input" type="checkbox" value="" id="MITMcheck"> Man in the middle (classical channel)
+            </label>
+            <div style="padding-top:30px;"></div>
+            <button type="button" class="btn btn-info" id="chBtn">Change</button>
+            <div style="padding-top:28px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <script>
+    $(document).ready(function() {
+      // Javascript method's body can be found in assets/js/demos.js
+      document.getElementById("startExc").addEventListener("click", newKey);
+      document.getElementById("statevectBtn").addEventListener("click", changeSV);
+      document.getElementById("authBtn").addEventListener("click", changeAuth);
+      document.getElementById("chBtn").addEventListener("click", chSettings);
+      document.getElementById("clearBtn").addEventListener("click", clearResult);
+    });
+  </script>
+
+{% endblock javascripts %}
