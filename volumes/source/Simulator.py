@@ -24,6 +24,7 @@ import hvac
 import yaml
 from QKD import QKD
 import time
+import base64
 
 # global variables
 alice_key = []
@@ -45,6 +46,21 @@ correlationThreshold = int(prefs['simulator']['chsh_threshold'])
 # utility function - timeout parameter is expressed in milliseconds
 # convert epoch time to milliseconds
 current_time = lambda: int(round(time.time() * 1000))
+
+# convert the array of bits into an array of bytes as per QKD specifications (bit 0 is the first bit of the octect - ETSI GS QKD 004 v1.1.1 (2010-12), page 9, table 1)
+def convertToBytes(key, key_length):
+	# convert list of bit in list of bytes
+	byteskey = []
+	for octect in range(int(key_length/8)):
+		i = 7
+		num = 0
+		for bit in key[(8*octect):(8*(octect+1))]:
+			num = (int(bit) << i) | num
+			i = i - 1
+		byteskey.append(num)
+	# convert list to bytearray
+	byteskey = bytearray(byteskey)
+	return byteskey
 
 
 # MODULE INTERFACE
@@ -144,7 +160,7 @@ class Simulator(QKD):
 				# delete key once returned
 				client.secrets.kv.delete_metadata_and_all_versions('e91Key')
 				cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = 'E91'")
-				return key, True
+				return key, True, 0
 
 			x = requests.post('http://' + prefs['eve']['ip_addr'] + '/startE91exchange?destination=' + destination, data=repr(key_length))
 			if x.status_code == 200:
@@ -153,8 +169,8 @@ class Simulator(QKD):
 				# delete key once returned
 				client.secrets.kv.delete_metadata_and_all_versions('e91Key')
 				cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = 'E91'")
-				return key, True
-			return None, False
+				return key, True, 0
+			return None, False, 0
 		# bb84
 		else:
 			# delay the start of the exchange of a random number of seconds (between 0 and 8)
@@ -197,7 +213,7 @@ class Simulator(QKD):
 							# timeout elapsed - clean requests list
 							cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = '%s'" % (destAddr))
 
-							return None, 4
+							return None, 4, 0
 					# now key exchange is complete
 					verified = result[3]
 					if verified == 0:
@@ -248,7 +264,7 @@ class Simulator(QKD):
 			if x.status_code != 200:
 				# error - return
 				#cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = '%s'" % (destAddr))
-				return None, False
+				return None, False, 0
 			end = time.time()
 			app.logger.info("/sendRegister time: " + str(end - start))
 
@@ -259,7 +275,7 @@ class Simulator(QKD):
 				if key is None:
 					# no key available, return an error
 					cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = '%s'" % (destAddr))
-					return None, False
+					return None, False, 0
 				aesgcm = AESGCM(bytes(key, 'utf-8'))
 				# select nonce
 				nonce = randomStringGen(12)
@@ -273,7 +289,7 @@ class Simulator(QKD):
 				if y.status_code != 200:
 					# error - return
 					cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = '%s'" % (destAddr))
-					return None, False
+					return None, False, 0
 				end = time.time()
 				app.logger.info("/compareBasis time: " + str(end - start))
 				rep = eval(y.content)
@@ -298,7 +314,7 @@ class Simulator(QKD):
 				if y.status_code != 200:
 					# error - return
 					cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = '%s'" % (destAddr))
-					return None, False
+					return None, False, 0
 				end = time.time()
 				app.logger.info("/compareBasis time: " + str(end - start))
 
@@ -310,7 +326,7 @@ class Simulator(QKD):
 				if not sphincs.verify(bob_table.tobytes(), tableSign, eval(prefs['auth_key']['peerPublicKey'])):
 					app.logger.error("Table comparison failed due to wrong signature!")
 					cursor.execute("DELETE FROM " + str(prefs['simulator']['table']) + " WHERE `requestIP` = '%s'" % (destAddr))
-					return None, False
+					return None, False, 0
 				end = time.time()
 				app.logger.info("sphincs+ verify time: " + str(end - start))
 
@@ -382,7 +398,7 @@ class Simulator(QKD):
 					key, keyID, TTL = getPresharedKey()
 					if key is None:
 						# no key available, return an error
-						return None, False
+						return None, False, 0
 				aesgcm = AESGCM(bytes(key, 'utf-8'))
 				# select nonce
 				nonceVK = randomStringGen(12)
@@ -392,7 +408,7 @@ class Simulator(QKD):
 				x = requests.post('http://' + prefs['eve']['ip_addr'] + '/verifyKey?destination=' + destination, data = repr([keyID, cypherVK, nonceVK, cypherP, nonceP]))
 				if x.status_code != 200:
 					app.logger.error("Server error occurred %s" % x.status_code)
-					return alice_key, False
+					return alice_key, False, 0
 				# get Bob's reply
 				rep = eval(x.content)
 				cypherRep = rep[0]
@@ -410,7 +426,7 @@ class Simulator(QKD):
 				x = requests.post('http://' + prefs['eve']['ip_addr'] + '/verifyKey?destination=' + destination, data = repr([verifyingKey, keySign, pickle.dumps(picked), pickSign]))
 				if x.status_code != 200:
 					app.logger.error("Server error occurred %s" % x.status_code)
-					return alice_key, False
+					return alice_key, False, 0
 
 				# get Bob's reply
 				rep = eval(x.content)
@@ -420,7 +436,7 @@ class Simulator(QKD):
 				# verify Bob's signature
 				if not sphincs.verify(bytes(bobKey), bobKeySign, eval(prefs['auth_key']['peerPublicKey'])):
 					app.logger.error("Key verification failed due to wrong signature!")
-					return alice_key, false
+					return alice_key, false, 0
 
 			# check that Alice and Bob have the same key
 			acc = 0
@@ -753,11 +769,16 @@ def keyExchange():
 		key_length = data.get('length')
 		if key_length is None:
 			key_length = prefs['simulator']['def_key_len']
+		key_length = int(key_length)
 		protocol = data.get('protocol')
 		if protocol is None:
 			protocol = prefs['simulator']['protocol']
 		exchanger = Simulator()
 		key, verified, qber = exchanger.exchangeKey(key_length, destination, protocol)
+		if key != None:
+			# convert key into array of bytes first and base64 then
+			key = convertToBytes(key, key_length)
+			key = base64.b64encode(key)
 		resp = Response(repr([key, verified, qber]))
 		resp.headers['Access-Control-Allow-Origin'] = '*'
 		return resp

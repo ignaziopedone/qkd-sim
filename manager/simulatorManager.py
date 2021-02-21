@@ -34,7 +34,6 @@ def main():
 			if prot == 2:
 				protocol = 'e91'
 
-			print("Starting key exchange of length %d, with destination %s, using protocol %s." % (length, destination, protocol))
 			start = time.time()
 			x = requests.post('http://172.15.0.4:4000/startKeyExchange', data = repr({'destination' : destination, 'length' : length, 'protocol' : protocol}))
 			end = time.time()
@@ -93,7 +92,7 @@ def main():
 			destination = input("Insert Eve's IP address (press enter for default Eve address: http://172.15.0.6:4000):\n")
 			if destination == '':
 				destination = 'http://172.15.0.6:4000' 
-			setting = input("\nPlease select setting you want to change:\n 1) Enable intercept and resend attack\n 2) Disable intercept and resend attack\n 3) Enable man in the middle attack \n 4) Disable man in the middle attack\n[1-4]: ")
+			setting = input("\nPlease select setting you want to change:\n 1) Enable intercept and resend attack\n 2) Disable intercept and resend attack\n 3) Enable man in the middle attack (experimental) \n 4) Disable man in the middle attack (experimental)\n[1-4]: ")
 			setting = eval(setting)
 			if type(setting) is not int or setting < 1 or setting > 4:
 				print("Error: selected value must be in range (1-4)")

@@ -115,7 +115,7 @@ function newKey(){
 		keyLen = '128'
 	}
 	var protocol = document.getElementById("protcontrol").value;
-	
+
 	resp1 = "";
 	resp2 = "";
 	status1 = 0;
@@ -135,7 +135,9 @@ function newKey(){
 							resp2 = this.responseText;
 							document.getElementById("reqRes").innerHTML = "Source key: " + resp1 + "<br><br>Destination key:" + resp2;
 							if(!resp1.includes('None') && !resp2.includes('None')){
-								if(resp1 == resp2)
+								k1 = resp1.split(",")[0]
+								k2 = resp2.split(",")[0]
+								if(k1 == k2)
 									document.getElementById("reqRes").innerHTML = document.getElementById("reqRes").innerHTML + "<br><br>The two keys are the same.";
 								else
 									document.getElementById("reqRes").innerHTML = document.getElementById("reqRes").innerHTML + "<br><br>The two keys differ.";

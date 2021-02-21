@@ -303,10 +303,18 @@ def startE91exchange():
 				bobResult = 1
 
 			if (newAliceBasis[i] == 2 and newBobBasis[i] == 1) or (newAliceBasis[i] == 3 and newBobBasis[i] == 2):
+				# record the multiplied by -1 i-th result obtained Bob as the bit of the secret key k'
+				bobResult = - bobResult
+				# convert 1, -1 values into 1, 0
+				if aliceResult == -1:
+					aliceResult = 0
+				if bobResult == -1:
+					bobResult = 0
+				
 				# record the i-th result obtained by Alice as the bit of the secret key k
 				aliceKey.append(aliceResult)
-				# record the multiplied by -1 i-th result obtained Bob as the bit of the secret key k'
-				bobKey.append(- bobResult)
+				bobKey.append(bobResult)
+
 		aliceBasis.extend(newAliceBasis)
 		bobBasis.extend(newBobBasis)
 		current_len = len(aliceKey)

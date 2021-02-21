@@ -10,7 +10,7 @@ from app import login_manager
 from jinja2 import TemplateNotFound
 
 @blueprint.route('/index')
-#@login_required # [cr]
+#@login_required
 def index():
 
     return render_template('index.html', segment='index')

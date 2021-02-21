@@ -43,7 +43,7 @@ docker-compose exec manager sh
 
 From the docker's shell you can start test by issuing the command:
 ```sh
-python simulatorManager.py
+python src/simulatorManager.py
 ```
 The program will run in a continuous `while(True)` loop until `Exit` option is selected and allows to perform the following operations:
 
