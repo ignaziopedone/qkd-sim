@@ -393,12 +393,11 @@ class Simulator(QKD):
 				raise(e)
 
 			if authenticationMethod == 'aesgcm':
-				if TTL == 0:
-					# we need to take another key
-					key, keyID, TTL = getPresharedKey()
-					if key is None:
-						# no key available, return an error
-						return None, False, 0
+				# we need to take another key
+				key, keyID, TTL = getPresharedKey()
+				if key is None:
+					# no key available, return an error
+					return None, False, 0
 				aesgcm = AESGCM(bytes(key, 'utf-8'))
 				# select nonce
 				nonceVK = randomStringGen(12)
